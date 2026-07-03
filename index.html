@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>랩실 조사 DB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = 'https://bpzadoexpimjacwpgclo.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_MZQgvickuQseXKKS31yV5g_fUYI1Qkb';
+</script>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f9f8f5;
+    --border: rgba(0,0,0,0.09);
+    --border-hover: rgba(0,0,0,0.18);
+    --text: #1a1a1a;
+    --text2: #666;
+    --text3: #999;
+    --accent: #4a3fa5;
+    --accent-light: #eeedfe;
+    --accent-text: #3c3489;
+    --green-bg: #e1f5ee;
+    --green-text: #085041;
+    --amber-bg: #faeeda;
+    --amber-text: #633806;
+    --gray-bg: #f1efe8;
+    --gray-text: #444;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-hover: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Layout */
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 36px;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .header-left h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.4px;
+    line-height: 1.3;
+  }
+  .header-left p {
+    font-size: 13px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 500;
+  }
+  .stat-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0 14px;
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+  }
+  .search-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74,63,165,0.08);
+  }
+  .search-icon { color: var(--text3); font-size: 15px; }
+  .search-wrap input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text);
+    padding: 10px 0;
+    width: 100%;
+    font-family: inherit;
+  }
+  .search-wrap input::placeholder { color: var(--text3); }
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s, transform .1s;
+    white-space: nowrap;
+  }
+  .btn-add:hover { background: #3c3489; }
+  .btn-add:active { transform: scale(0.98); }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .chip {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--border-hover); color: var(--text); }
+  .chip.active { background: var(--accent-light); border-color: #afa9ec; color: var(--accent-text); }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: box-shadow .18s, border-color .18s, transform .18s;
+    box-shadow: var(--shadow);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+  .card-prof {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-high { background: var(--green-bg); color: var(--green-text); }
+  .badge-mid { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-low { background: var(--gray-bg); color: var(--gray-text); }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .tag {
+    font-size: 11px;
+    background: var(--accent-light);
+    color: var(--accent-text);
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+  .card-info {
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .card-info-row { display: flex; align-items: center; gap: 7px; }
+  .cdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .cdot-none { background: #ccc; }
+  .cdot-sent { background: #ef9f27; }
+  .cdot-replied, .cdot-interview { background: #1d9e75; }
+  .card-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .btn-sm {
+    font-size: 12px;
+    padding: 5px 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background .12s, border-color .12s;
+  }
+  .btn-sm:hover { background: var(--surface2); border-color: var(--border-hover); }
+  .btn-sm.danger:hover { background: #fcebeb; color: #a32d2d; border-color: #f09595; }
+  .btn-sm.link-btn { color: var(--accent-text); border-color: #afa9ec; }
+  .btn-sm.link-btn:hover { background: var(--accent-light); }
+
+  /* Empty */
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 64px 0;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* Modal backdrop */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.open { display: flex; }
+
+  /* Modal */
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px 28px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.14);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+  .modal-header h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+  .btn-close {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 16px;
+    transition: background .12s;
+  }
+  .btn-close:hover { background: #fce8e8; color: #a32d2d; }
+
+  /* Form sections */
+  .fs { margin-bottom: 20px; }
+  .fs-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--border);
+  }
+  .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .fr.full { grid-template-columns: 1fr; }
+  .fg { display: flex; flex-direction: column; gap: 4px; }
+  .fg label { font-size: 11px; color: var(--text2); font-weight: 500; }
+  .fg input, .fg select, .fg textarea {
+    width: 100%;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 11px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    font-family: inherit;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .fg input:focus, .fg select:focus, .fg textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74,63,165,0.08);
+  }
+  .fg textarea { resize: vertical; min-height: 62px; }
+
+  /* Modal footer */
+  .mf {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .btn-save {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+  }
+  .btn-save:hover { background: #3c3489; }
+  .btn-cancel-m {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 9px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .12s;
+  }
+  .btn-cancel-m:hover { background: var(--surface2); }
+
+  /* Detail */
+  .dsec { margin-bottom: 18px; }
+  .dsec-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .di { display: flex; flex-direction: column; gap: 2px; }
+  .di.full { grid-column: span 2; }
+  .di .dl { font-size: 11px; color: var(--text3); }
+  .di .dv { font-size: 13px; color: var(--text); word-break: break-word; }
+  .di .dv a { color: var(--accent); text-decoration: none; }
+  .di .dv a:hover { text-decoration: underline; }
+
+  /* Auth gate */
+  .auth-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .auth-card h1 { font-size: 20px; font-weight: 600; margin-bottom: 15px; }
+  .auth-card p.sub { font-size: 12px; color: var(--text3); margin-bottom: 22px; }
+  .auth-card .fg { margin-bottom: 12px; }
+  .auth-card label { font-size: 12px; color: var(--text2); font-weight: 500; display:block; margin-bottom: 4px; }
+  .auth-card input {
+    width: 100%; font-size: 13px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 9px 12px; font-family: inherit;
+    outline: none; transition: border-color .12s, box-shadow .12s;
+  }
+  .auth-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,63,165,0.08); }
+  .auth-btn {
+    width: 100%; background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius-md); padding: 10px; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: inherit; margin-top: 6px; transition: background .15s;
+  }
+  .auth-btn:hover { background: #3c3489; }
+  .auth-btn:disabled { opacity: .6; cursor: not-allowed; }
+  .auth-toggle { text-align: center; font-size: 12px; color: var(--text3); margin-top: 16px; }
+  .auth-toggle a { color: var(--accent-text); cursor: pointer; text-decoration: none; font-weight: 500; }
+  .auth-toggle a:hover { text-decoration: underline; }
+  .auth-msg { font-size: 12px; margin-top: 10px; padding: 8px 10px; border-radius: var(--radius-sm); }
+  .auth-msg.err { background: #fcebeb; color: #a32d2d; }
+  .auth-msg.ok { background: var(--green-bg); color: var(--green-text); }
+  .logout-btn {
+    font-size: 12px; color: var(--text3); background: transparent; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 5px 10px; cursor: pointer; font-family: inherit;
+  }
+  .logout-btn:hover { background: var(--surface2); color: var(--text); }
+  .user-badge { font-size: 12px; color: var(--text3); display:flex; align-items:center; gap:8px; }
+</style>
+</head>
+<body>
+
+<!-- Auth Gate -->
+<div class="auth-wrap" id="authWrap">
+  <div class="auth-card">
+    <h1 id="authTitle">🔬 LabTrack</h1>
+    <div class="fg"><label>이메일</label><input id="authEmail" type="email" placeholder="you@example.com"></div>
+    <div class="fg"><label>비밀번호</label><input id="authPassword" type="password" placeholder="6자 이상"></div>
+    <button class="auth-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">로그인</button>
+    <div id="authMsg"></div>
+    <div class="auth-toggle" id="authToggle">계정이 없으신가요? <a onclick="toggleAuthMode()">회원가입</a></div>
+  </div>
+</div>
+
+<div class="page" id="mainApp" style="display:none">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="header-left">
+        <h1>🔬 LabTrack DB </h1>
+        <p>지원을 희망하는 연구실 정보를 한 곳에서 관리하세요</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="stats-row" id="statsRow"></div>
+        <div class="user-badge"><span id="userEmail"></span><button class="logout-btn" onclick="handleLogout()">로그아웃</button></div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="searchInput" placeholder="연구실명, 교수님, 키워드 검색..." oninput="renderCards()">
+      </div>
+      <button class="btn-add" onclick="openModal()">+ 랩실 추가</button>
+    </div>
+    <div class="filters" id="filterRow">
+      <span class="chip active" data-f="all" onclick="setFilter(this,'all')">전체</span>
+      <span class="chip" data-f="high" onclick="setFilter(this,'high')">🟢 관심 높음</span>
+      <span class="chip" data-f="mid" onclick="setFilter(this,'mid')">🟡 관심 보통</span>
+      <span class="chip" data-f="low" onclick="setFilter(this,'low')">⚪ 관심 낮음</span>
+      <span class="chip" data-f="replied" onclick="setFilter(this,'replied')">💬 답장 수신</span>
+      <span class="chip" data-f="sent" onclick="setFilter(this,'sent')">📤 메일 발송</span>
+    </div>
+  </div>
+
+  <!-- Card Grid -->
+  <div class="grid" id="cardGrid"></div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="overlay" id="modalOverlay" onclick="closeIfOut(event,'modalOverlay','closeModal')">
+<div class="modal">
+  <div class="modal-header">
+    <h2 id="modalTitle">랩실 추가</h2>
+    <button class="btn-close" onclick="closeModal()">✕</button>
+  </div>
+
+  <div class="fs">
+    <div class="fs-title">📋 기본 정보</div>
+    <div class="fr"><div class="fg"><label>연구실명</label><input id="f_labName" placeholder="인공지능연구실"></div><div class="fg"><label>교수님 성함</label><input id="f_prof" placeholder="홍길동 교수"></div></div>
+    <div class="fr"><div class="fg"><label>소속 학교</label><input id="f_school" placeholder="서울대학교"></div><div class="fg"><label>학과</label><input id="f_dept" placeholder="컴퓨터공학과"></div></div>
+    <div class="fr"><div class="fg"><label>교수님 이메일</label><input id="f_profEmail" type="email" placeholder="professor@university.ac.kr"></div><div class="fg"><label>교수님 전화번호</label><input id="f_profPhone" placeholder="02-880-0000"></div></div>
+    <div class="fr"><div class="fg"><label>홈페이지 URL</label><input id="f_homepage" placeholder="https://lab.example.ac.kr"></div><div class="fg"><label>위치 (건물/호수)</label><input id="f_location" placeholder="공대 5동 302호"></div></div>
+    <div class="fr full"><div class="fg"><label>연구 분야 키워드 (쉼표로 구분)</label><input id="f_keywords" placeholder="딥러닝, NLP, 컴퓨터 비전"></div></div>
+  </div>
+
+  <div class="fs">
+    <div class="fs-title">📄 연구 실적</div>
+    <div class="fr full"><div class="fg"><label>최근 3년 주요 학술지/학회</label><input id="f_publications" placeholder="CVPR 2024, NeurIPS 2023, ICLR 2024"></div></div>
+    <div class="fr full"><div class="fg"><label>대표 연구 주제</label><textarea id="f_topic" placeholder="현재 주력 프로젝트 및 연구 방향"></textarea></div></div>
+  </div>
+
+  <div class="fs">
+    <div class="fs-title">🏢 랩실 분위기 & 인프라</div>
+    <div class="fr"><div class="fg"><label>랩실 규모 (총 인원)</label><input id="f_size" placeholder="박사 3, 석사 6, 학부 2명"></div><div class="fg"><label>근무형태 / 코어타임</label><input id="f_workhour" placeholder="코어타임 10:00~17:00"></div></div>
+    <div class="fr full"><div class="fg"><label>장비 / GPU / 인프라</label><input id="f_infra" placeholder="A100 4장, 개인 서버 지급"></div></div>
+  </div>
+
+  <div class="fs">
+    <div class="fs-title">🎓 졸업생 진로</div>
+    <div class="fr full"><div class="fg"><label>졸업생 진로</label><input id="f_alumni" placeholder="삼성전자, 카카오, CMU 박사 진학 등"></div></div>
+  </div>
+
+  <div class="fs">
+    <div class="fs-title">📨 컨택 & 지원 준비</div>
+    <div class="fr"><div class="fg"><label>컨택 상태</label><select id="f_contactStatus"><option value="none">미발송</option><option value="sent">메일 발송</option><option value="replied">답장 수신</option><option value="interview">면접 예정</option></select></div><div class="fg"><label>메일 발송 날짜</label><input id="f_contactDate" type="date"></div></div>
+    <div class="fr full"><div class="fg"><label>필요 역량 / 선수과목</label><input id="f_skills" placeholder="Python, PyTorch, 머신러닝 기초"></div></div>
+  </div>
+
+  <div class="fs">
+    <div class="fs-title">⭐ 비고 & 평가</div>
+    <div class="fr"><div class="fg"><label>나의 관심도</label><select id="f_interest"><option value="high">상 🟢</option><option value="mid">중 🟡</option><option value="low">하 ⚪</option></select></div><div class="fg"><label>장점</label><input id="f_pros" placeholder="논문 실적 우수, 분위기 좋음"></div></div>
+    <div class="fr full"><div class="fg"><label>우려되는 점</label><textarea id="f_cons" placeholder="코어타임 빡빡함, 연구 분야 미스매치 등"></textarea></div></div>
+    <div class="fr full"><div class="fg"><label>메모</label><textarea id="f_memo" placeholder="기타 메모, 지인 후기 등"></textarea></div></div>
+  </div>
+
+  <div class="mf">
+    <button class="btn-cancel-m" onclick="closeModal()">취소</button>
+    <button class="btn-save" onclick="saveLab()">저장하기</button>
+  </div>
+</div>
+</div>
+
+<!-- Detail Modal -->
+<div class="overlay" id="detailOverlay" onclick="closeIfOut(event,'detailOverlay','closeDetail')">
+<div class="modal">
+  <div class="modal-header">
+    <h2 id="detailTitle">연구실 상세</h2>
+    <button class="btn-close" onclick="closeDetail()">✕</button>
+  </div>
+  <div id="detailContent"></div>
+  <div class="mf">
+    <button class="btn-cancel-m" onclick="closeDetail()">닫기</button>
+    <button class="btn-save" id="detailEditBtn">수정하기</button>
+  </div>
+</div>
+</div>
+
+<script>
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let labs = [];
+let editingId = null;
+let filterMode = 'all';
+let currentUser = null;
+let authMode = 'login'; // 'login' | 'signup'
+
+const FIELDS = ['labName','prof','profEmail','profPhone','school','dept','homepage','location','keywords','publications','topic','size','workhour','infra','alumni','contactStatus','contactDate','skills','interest','pros','cons','memo'];
+
+// JS(camelCase) field name -> DB(snake_case) column name
+const COL_MAP = {
+  labName:'lab_name', prof:'prof', profEmail:'prof_email', profPhone:'prof_phone',
+  school:'school', dept:'dept', homepage:'homepage', location:'location',
+  keywords:'keywords', publications:'publications', topic:'topic', size:'size',
+  workhour:'workhour', infra:'infra', alumni:'alumni', contactStatus:'contact_status',
+  contactDate:'contact_date', skills:'skills', interest:'interest', pros:'pros',
+  cons:'cons', memo:'memo'
+};
+
+function toDbRow(obj) {
+  const row = {};
+  FIELDS.forEach(f => { row[COL_MAP[f]] = obj[f] || null; });
+  return row;
+}
+function fromDbRow(row) {
+  const obj = { id: row.id };
+  FIELDS.forEach(f => { obj[f] = row[COL_MAP[f]] || ''; });
+  return obj;
+}
+
+/* ---------- Auth ---------- */
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('authTitle').textContent = authMode === 'login' ? '🔬 로그인' : '🔬 회원가입';
+  document.getElementById('authSubmitBtn').textContent = authMode === 'login' ? '로그인' : '회원가입';
+  document.getElementById('authToggle').innerHTML = authMode === 'login'
+    ? '계정이 없으신가요? <a onclick="toggleAuthMode()">회원가입</a>'
+    : '이미 계정이 있으신가요? <a onclick="toggleAuthMode()">로그인</a>';
+  document.getElementById('authMsg').innerHTML = '';
+}
+
+function showAuthMsg(text, type) {
+  document.getElementById('authMsg').innerHTML = `<div class="auth-msg ${type}">${text}</div>`;
+}
+
+async function handleAuthSubmit() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  if (!email || !password) { showAuthMsg('이메일과 비밀번호를 입력해주세요.', 'err'); return; }
+  if (password.length < 6) { showAuthMsg('비밀번호는 6자 이상이어야 해요.', 'err'); return; }
+
+  btn.disabled = true;
+  try {
+    if (authMode === 'signup') {
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error) throw error;
+      if (data.session) {
+        // email confirmation disabled in project settings -> logged in immediately
+      } else {
+        showAuthMsg('가입 확인 이메일을 보냈어요. 메일함을 확인해주세요.', 'ok');
+      }
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+  } catch (e) {
+    showAuthMsg(e.message || '문제가 발생했어요. 다시 시도해주세요.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  currentUser = session ? session.user : null;
+  if (currentUser) {
+    document.getElementById('authWrap').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('userEmail').textContent = currentUser.email;
+    load();
+  } else {
+    document.getElementById('authWrap').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+    labs = [];
+  }
+});
+
+/* ---------- Data (Supabase) ---------- */
+
+async function load() {
+  const grid = document.getElementById('cardGrid');
+  grid.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>불러오는 중...</p></div>';
+  const { data, error } = await sb.from('labs').select('*').order('created_at', { ascending: false });
+  if (error) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>데이터를 불러오지 못했어요.<br><span style="font-size:12px;color:#bbb">${error.message}</span></p></div>`;
+    return;
+  }
+  labs = (data || []).map(fromDbRow);
+  renderStats(); renderCards();
+}
+
+function findLab(id) { return labs.find(l => l.id === id); }
+
+function renderStats() {
+  const counts = { total: labs.length, high: 0, replied: 0, sent: 0 };
+  labs.forEach(l => {
+    if(l.interest === 'high') counts.high++;
+    if(l.contactStatus === 'replied' || l.contactStatus === 'interview') counts.replied++;
+    if(l.contactStatus === 'sent') counts.sent++;
+  });
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-pill"><span class="stat-dot" style="background:#4a3fa5"></span>총 ${counts.total}개</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#1d9e75"></span>관심 높음 ${counts.high}개</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#ef9f27"></span>발송 ${counts.sent}개</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#1d9e75"></span>답장 ${counts.replied}개</div>
+  `;
+}
+
+function setFilter(el, val) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterMode = val;
+  renderCards();
+}
+
+function csLabel(s) {
+  return {none:'미발송', sent:'메일 발송', replied:'답장 수신', interview:'면접 예정'}[s] || '미발송';
+}
+function csDot(s) {
+  return `cdot cdot-${s||'none'}`;
+}
+function intBadge(i) {
+  if(i==='high') return '<span class="badge badge-high">관심 높음</span>';
+  if(i==='mid') return '<span class="badge badge-mid">관심 보통</span>';
+  return '<span class="badge badge-low">관심 낮음</span>';
+}
+
+function renderCards() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const grid = document.getElementById('cardGrid');
+  const filtered = labs.filter(l => {
+    const hay = [l.labName,l.prof,l.school,l.dept,l.keywords,l.topic].join(' ').toLowerCase();
+    const matchQ = !q || hay.includes(q);
+    let matchF = true;
+    if(filterMode==='high') matchF = l.interest==='high';
+    else if(filterMode==='mid') matchF = l.interest==='mid';
+    else if(filterMode==='low') matchF = l.interest==='low';
+    else if(filterMode==='replied') matchF = l.contactStatus==='replied'||l.contactStatus==='interview';
+    else if(filterMode==='sent') matchF = l.contactStatus==='sent';
+    return matchQ && matchF;
+  });
+
+  if(!filtered.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🔬</div><p>등록된 랩실이 없어요<br><span style="font-size:12px;color:#bbb">위의 + 버튼으로 추가해보세요</span></p></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(l => {
+    const tags = (l.keywords||'').split(',').filter(t=>t.trim()).slice(0,4).map(t=>`<span class="tag">${t.trim()}</span>`).join('');
+    return `<div class="card" onclick="openDetail('${l.id}')">
+      <div class="card-head">
+        <div>
+          <div class="card-name">${l.labName||'연구실명 미입력'}</div>
+          <div class="card-prof">${l.prof||''} ${l.school||l.dept ? '· '+(l.school||'')+(l.dept?' '+l.dept:'') : ''}</div>
+        </div>
+        ${intBadge(l.interest)}
+      </div>
+      ${tags ? `<div class="tags">${tags}</div>` : ''}
+      <div class="card-info">
+        <div class="card-info-row"><span class="${csDot(l.contactStatus)}"></span>${csLabel(l.contactStatus)}${l.contactDate?' ('+l.contactDate+')':''}</div>
+        ${l.profEmail ? `<div class="card-info-row">✉️ <a href="mailto:${l.profEmail}" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none">${l.profEmail}</a></div>` : ''}
+        ${l.profPhone ? `<div class="card-info-row">📞 ${l.profPhone}</div>` : ''}
+        ${l.size ? `<div class="card-info-row">👥 ${l.size}</div>` : ''}
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn-sm" onclick="openModal('${l.id}')">✏️ 수정</button>
+        ${l.homepage ? `<button class="btn-sm link-btn" onclick="window.open('${l.homepage}','_blank')">🔗 홈페이지</button>` : ''}
+        <button class="btn-sm danger" onclick="delLab('${l.id}')">🗑 삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(id=null) {
+  editingId = id;
+  document.getElementById('modalTitle').textContent = id===null ? '랩실 추가' : '랩실 수정';
+  if(id !== null) {
+    const l = findLab(id);
+    FIELDS.forEach(f => { const el = document.getElementById('f_'+f); if(el) el.value = l[f]||''; });
+  } else {
+    FIELDS.forEach(f => { const el = document.getElementById('f_'+f); if(el) el.value = ''; });
+    document.getElementById('f_interest').value = 'high';
+    document.getElementById('f_contactStatus').value = 'none';
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editingId=null; }
+
+async function saveLab() {
+  const obj = {};
+  FIELDS.forEach(f => { const el = document.getElementById('f_'+f); obj[f] = el ? el.value : ''; });
+  if(!obj.labName.trim()) { alert('연구실명을 입력해주세요.'); return; }
+
+  const dbRow = toDbRow(obj);
+  closeModal();
+
+  if (editingId !== null) {
+    const { error } = await sb.from('labs').update(dbRow).eq('id', editingId);
+    if (error) { alert('저장 실패: ' + error.message); return; }
+    const idx = labs.findIndex(l => l.id === editingId);
+    if (idx > -1) labs[idx] = { ...obj, id: editingId };
+  } else {
+    const { data, error } = await sb.from('labs').insert(dbRow).select().single();
+    if (error) { alert('저장 실패: ' + error.message); return; }
+    labs.unshift(fromDbRow(data));
+  }
+  renderStats(); renderCards();
+}
+
+async function delLab(id) {
+  if(!confirm('이 랩실 정보를 삭제할까요?')) return;
+  const { error } = await sb.from('labs').delete().eq('id', id);
+  if (error) { alert('삭제 실패: ' + error.message); return; }
+  labs = labs.filter(l => l.id !== id);
+  renderStats(); renderCards();
+}
+
+function openDetail(id) {
+  const l = findLab(id);
+  if (!l) return;
+  document.getElementById('detailTitle').textContent = (l.labName||'연구실') + (l.prof ? ' · ' + l.prof : '');
+  document.getElementById('detailEditBtn').onclick = () => { closeDetail(); openModal(id); };
+  const tags = (l.keywords||'').split(',').filter(t=>t.trim()).map(t=>`<span class="tag">${t.trim()}</span>`).join(' ');
+  const cs = {none:'⚪ 미발송',sent:'📤 메일 발송',replied:'💬 답장 수신',interview:'🗓️ 면접 예정'}[l.contactStatus]||'미발송';
+  const intL = {high:'상 🟢',mid:'중 🟡',low:'하 ⚪'}[l.interest]||'-';
+  document.getElementById('detailContent').innerHTML = `
+    <div class="dsec"><div class="dsec-title">기본 정보</div>
+      <div class="dgrid">
+        <div class="di"><span class="dl">소속</span><span class="dv">${(l.school||'-')+' '+(l.dept||'')}</span></div>
+        <div class="di"><span class="dl">위치</span><span class="dv">${l.location||'-'}</span></div>
+        <div class="di full"><span class="dl">홈페이지</span><span class="dv">${l.homepage?`<a href="${l.homepage}" target="_blank">${l.homepage}</a>`:'-'}</span></div>
+        <div class="di"><span class="dl">교수님 이메일</span><span class="dv">${l.profEmail?`<a href="mailto:${l.profEmail}">${l.profEmail}</a>`:'-'}</span></div>
+        <div class="di"><span class="dl">교수님 전화번호</span><span class="dv">${l.profPhone||'-'}</span></div>
+        <div class="di full"><span class="dl">연구 키워드</span><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${tags||'-'}</div></div>
+      </div>
+    </div>
+    <div class="dsec"><div class="dsec-title">연구 실적</div>
+      <div class="dgrid">
+        <div class="di full"><span class="dl">주요 학술지/학회</span><span class="dv">${l.publications||'-'}</span></div>
+        <div class="di full"><span class="dl">대표 연구 주제</span><span class="dv">${l.topic||'-'}</span></div>
+      </div>
+    </div>
+    <div class="dsec"><div class="dsec-title">랩실 분위기 & 인프라</div>
+      <div class="dgrid">
+        <div class="di"><span class="dl">규모</span><span class="dv">${l.size||'-'}</span></div>
+        <div class="di"><span class="dl">근무형태</span><span class="dv">${l.workhour||'-'}</span></div>
+        <div class="di full"><span class="dl">장비/인프라</span><span class="dv">${l.infra||'-'}</span></div>
+      </div>
+    </div>
+    <div class="dsec"><div class="dsec-title">졸업생 진로</div>
+      <div class="dgrid"><div class="di full"><span class="dv">${l.alumni||'-'}</span></div></div>
+    </div>
+    <div class="dsec"><div class="dsec-title">컨택 & 지원</div>
+      <div class="dgrid">
+        <div class="di"><span class="dl">컨택 상태</span><span class="dv">${cs}</span></div>
+        <div class="di"><span class="dl">메일 발송일</span><span class="dv">${l.contactDate||'-'}</span></div>
+        <div class="di full"><span class="dl">필요 역량</span><span class="dv">${l.skills||'-'}</span></div>
+      </div>
+    </div>
+    <div class="dsec"><div class="dsec-title">비고 & 평가</div>
+      <div class="dgrid">
+        <div class="di"><span class="dl">관심도</span><span class="dv">${intL}</span></div>
+        <div class="di"><span class="dl">장점</span><span class="dv">${l.pros||'-'}</span></div>
+        <div class="di full"><span class="dl">우려되는 점</span><span class="dv">${l.cons||'-'}</span></div>
+        <div class="di full"><span class="dl">메모</span><span class="dv">${l.memo||'-'}</span></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('detailOverlay').classList.add('open');
+}
+function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); }
+
+function closeIfOut(e, overlayId, closeFn) {
+  if(e.target.id === overlayId) window[closeFn]();
+}
+
+</script>
+</body>
+</html>
