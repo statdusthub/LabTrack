@@ -23,9 +23,9 @@
     --text: #1a1a1a;
     --text2: #666;
     --text3: #999;
-    --accent: #4a3fa5;
-    --accent-light: #eeedfe;
-    --accent-text: #3c3489;
+    --accent: #2c4a7c;
+    --accent-light: #dde8f5;
+    --accent-text: #1f3a5f;
     --green-bg: #e1f5ee;
     --green-text: #085041;
     --amber-bg: #faeeda;
@@ -122,7 +122,7 @@
   }
   .search-wrap:focus-within {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(74,63,165,0.08);
+    box-shadow: 0 0 0 3px rgba(44,74,124,0.08);
   }
   .search-icon { color: var(--text3); font-size: 15px; }
   .search-wrap input {
@@ -152,7 +152,7 @@
     transition: background .15s, transform .1s;
     white-space: nowrap;
   }
-  .btn-add:hover { background: #3c3489; }
+  .btn-add:hover { background: #1f3a5f; }
   .btn-add:active { transform: scale(0.98); }
 
   /* Filters */
@@ -175,7 +175,7 @@
     user-select: none;
   }
   .chip:hover { border-color: var(--border-hover); color: var(--text); }
-  .chip.active { background: var(--accent-light); border-color: #afa9ec; color: var(--accent-text); }
+  .chip.active { background: var(--accent-light); border-color: #a9c2de; color: var(--accent-text); }
 
   /* Grid */
   .grid {
@@ -277,7 +277,7 @@
   }
   .btn-sm:hover { background: var(--surface2); border-color: var(--border-hover); }
   .btn-sm.danger:hover { background: #fcebeb; color: #a32d2d; border-color: #f09595; }
-  .btn-sm.link-btn { color: var(--accent-text); border-color: #afa9ec; }
+  .btn-sm.link-btn { color: var(--accent-text); border-color: #a9c2de; }
   .btn-sm.link-btn:hover { background: var(--accent-light); }
 
   /* Empty */
@@ -366,7 +366,7 @@
   }
   .fg input:focus, .fg select:focus, .fg textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(74,63,165,0.08);
+    box-shadow: 0 0 0 3px rgba(44,74,124,0.08);
   }
   .fg textarea { resize: vertical; min-height: 62px; }
 
@@ -391,7 +391,7 @@
     font-family: inherit;
     transition: background .15s;
   }
-  .btn-save:hover { background: #3c3489; }
+  .btn-save:hover { background: #1f3a5f; }
   .btn-cancel-m {
     background: transparent;
     color: var(--text2);
@@ -451,13 +451,13 @@
     border-radius: var(--radius-sm); padding: 9px 12px; font-family: inherit;
     outline: none; transition: border-color .12s, box-shadow .12s;
   }
-  .auth-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,63,165,0.08); }
+  .auth-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(44,74,124,0.08); }
   .auth-btn {
     width: 100%; background: var(--accent); color: #fff; border: none;
     border-radius: var(--radius-md); padding: 10px; font-size: 13px; font-weight: 500;
     cursor: pointer; font-family: inherit; margin-top: 6px; transition: background .15s;
   }
-  .auth-btn:hover { background: #3c3489; }
+  .auth-btn:hover { background: #1f3a5f; }
   .auth-btn:disabled { opacity: .6; cursor: not-allowed; }
   .auth-toggle { text-align: center; font-size: 12px; color: var(--text3); margin-top: 16px; }
   .auth-toggle a { color: var(--accent-text); cursor: pointer; text-decoration: none; font-weight: 500; }
@@ -708,7 +708,7 @@ function renderStats() {
     if(l.contactStatus === 'sent') counts.sent++;
   });
   document.getElementById('statsRow').innerHTML = `
-    <div class="stat-pill"><span class="stat-dot" style="background:#4a3fa5"></span>총 ${counts.total}개</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#2c4a7c"></span>총 ${counts.total}개</div>
     <div class="stat-pill"><span class="stat-dot" style="background:#1d9e75"></span>관심 높음 ${counts.high}개</div>
     <div class="stat-pill"><span class="stat-dot" style="background:#ef9f27"></span>발송 ${counts.sent}개</div>
     <div class="stat-pill"><span class="stat-dot" style="background:#1d9e75"></span>답장 ${counts.replied}개</div>
